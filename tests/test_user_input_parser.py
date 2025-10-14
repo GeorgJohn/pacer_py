@@ -1,6 +1,10 @@
 import pytest
 
-from pacer_py.user_input_parser import parse_duration, parse_distance
+from pacer_py.user_input_parser import (
+    parse_duration, 
+    parse_distance, 
+    parse_option
+)
 
 
 def test_parse_duration() -> None:
@@ -83,6 +87,23 @@ def test_parse_distance_valid_inputs() -> None:
     assert parse_distance("2K") == 2000.0
     assert parse_distance("100M") == 100.0
 
+def test_parse_distance_predefined() -> None:
+
+    # Test Marathon
+    assert parse_distance("marathon") == 42195.0
+    assert parse_distance("Marathon") == 42195.0
+    assert parse_distance("MARATHON") == 42195.0
+    assert parse_distance("MRT") == 42195.0
+
+    # Test Half Marathon
+    assert parse_distance("half marathon") == 21097.5
+    assert parse_distance("Half-Marathon") == 21097.5
+    assert parse_distance("HALF MARATHON") == 21097.5
+    assert parse_distance("HMT") == 21097.5
+    assert parse_distance("HM") == 21097.5
+    assert parse_distance("semi marathon") == 21097.5
+    assert parse_distance("Semi Marathon") == 21097.5
+    assert parse_distance("SEMI-MARATHON") == 21097.5
 
 def test_parse_distance_invalid_inputs() -> None:
     """Test parse_distance with invalid inputs."""
@@ -127,3 +148,34 @@ def test_parse_distance_invalid_inputs() -> None:
     
     with pytest.raises(ValueError):
         parse_distance("   ")
+
+
+def test_parse_option_valid() -> None:
+    options = {1: "Option 1", 2: "Option 2", 3: "Option 3"}
+    
+    assert parse_option("1", options) == 1
+    assert parse_option("2", options) == 2
+    assert parse_option("3", options) == 3
+    assert parse_option(" 1 ", options) == 1  # Test with whitespace
+
+
+def test_parse_option_invalid() -> None:
+    options = {1: "Option 1", 2: "Option 2", 3: "Option 3"}
+    
+    with pytest.raises(ValueError, match="is not a valid option"):
+        parse_option("4", options)
+    
+    with pytest.raises(ValueError, match="is not a valid option"):
+        parse_option("0", options)
+
+    with pytest.raises(ValueError, match="is not a valid number"):
+        parse_option("-1", options)
+    
+    with pytest.raises(ValueError, match="is not a valid number"):
+        parse_option("abc", options)
+
+    with pytest.raises(ValueError, match="is not a valid number"):
+        parse_option("1.5", options)
+
+    with pytest.raises(ValueError, match="is not a valid number"):
+        parse_option("", options)

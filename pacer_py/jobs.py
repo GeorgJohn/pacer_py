@@ -2,6 +2,8 @@ import abc
 from typing import Any
 
 import pacer_py.user_interface as ui
+import pacer_py.utils as utils
+
 
 class Job(abc.ABC):
     
@@ -23,17 +25,31 @@ class CalculatePace(Job):
         return "Start Pace Calculator"
 
     def user_request(self) -> dict[str, Any]:
-        user_readings = {}
-        user_readings['distance'] = ui.ask_user_for_distance()
-        user_readings['duration'] = ui.ask_user_for_duration()
+        user_readings: dict[str, int | float] = {}
+        try:
+            user_readings['distance'] = ui.ask_user_for_distance()
+            user_readings['duration'] = ui.ask_user_for_duration()
+        except ValueError as e:
+            print(f"Error: {e}")
+            return {}
+
         return user_readings
 
     def execute(self, user_input: dict[str, Any]) -> dict[str, Any]:
-        print(f"Start calculating pace")
-        return dict()
+        distance_m = user_input.get('distance')
+        duration_sec = user_input.get('duration')
+        if distance_m is None or duration_sec is None:
+            raise ValueError("Missing distance or duration in user input.")
+        pace_min_per_km = (duration_sec / 60.0) / (distance_m / 1000.0)
+        return {'pace_min_per_km': pace_min_per_km}
 
     def user_response(self, result: dict[str, Any]) -> None:
-        pass
+        pace_reading = result.get('pace_min_per_km')
+        if pace_reading is None or not isinstance(pace_reading, (float)):
+            raise ValueError("Missing pace in result.")
+        
+        pace_split = utils.float_to_duration(pace_reading, 'min')
+        print(f"Pace: {pace_split[1]:02d}:{pace_split[2]:02d} min/km")
 
 class CalculateDuration(Job):
     def __str__(self) -> str:

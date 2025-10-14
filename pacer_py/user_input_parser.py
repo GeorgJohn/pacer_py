@@ -14,14 +14,14 @@ def parse_option(opt_str: str, opt: dict[int, str]) -> int:
     Raises:
         ValueError: If the input is not a valid option.
     """
-    if opt_str.isdigit():
+    if opt_str.strip().isdigit():
         opt_number = int(opt_str)
         if opt_number in opt.keys():
             return opt_number
         else:
-            raise ValueError(f"Chosen option {opt_number} is not available!")
+            raise ValueError(f"Option '{opt_number}' is not a valid option!")
     else:
-        raise ValueError(f"Input '{opt_str}' is not a valid number!")
+        raise ValueError(f"Option '{opt_str}' is not a valid number!")
 
 
 def parse_duration(duration_str: str) -> int:
@@ -76,8 +76,16 @@ def parse_distance(distance_str: str) -> float:
     Raises:
         ValueError: If the input format is invalid or cannot be converted to float.
     """
+    predefined_distance_mrt = ['marathon', 'mrt']
+    predefined_distance_hmt = ['half marathon', 'half-marathon', 'semi marathon', 'semi-marathon', 'hmt', 'hm']
+
     distance_str = distance_str.strip().lower()
     
+    if distance_str in predefined_distance_mrt:
+        return 42195.0
+    if distance_str in predefined_distance_hmt:
+        return 21097.5
+
     # Initialize variables
     distance_num_str = ""
     distance_in_km = False
