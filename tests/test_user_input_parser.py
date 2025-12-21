@@ -3,7 +3,8 @@ import pytest
 from pacer_py.user_input_parser import (
     parse_duration, 
     parse_distance, 
-    parse_option
+    parse_option,
+    parse_pace,
 )
 
 
@@ -22,6 +23,7 @@ def test_parse_duration() -> None:
     assert parse_duration("0:0:0") == 0
     assert parse_duration("1234") == 1234
     assert parse_duration("61:00") == 61 * 60
+    assert parse_duration("60:00") == 3600
     assert parse_duration("25:00:00") == 25 * 3600
 
 
@@ -179,3 +181,53 @@ def test_parse_option_invalid() -> None:
 
     with pytest.raises(ValueError, match="is not a valid number"):
         parse_option("", options)
+
+
+def test_parse_pace_valid_inputs() -> None:
+    """Test parse_pace with valid inputs."""
+    
+    # Test minutes per distance
+    assert parse_pace("5:00/km") == 300.0 / 1000.0
+    assert parse_pace("8:30/km") == 510.0 / 1000.0
+    assert parse_pace("4:15/m") == 255.0 / 1.0
+    assert parse_pace("10:00/m") == 600.0 / 1.0
+
+    assert parse_pace("5 min/km") == 300.0 / 1000.0
+    assert parse_pace(" 4:15 min/km") == 255.0 / 1000.0
+    
+    # Test seconds per distance
+    assert parse_pace("300 sec/km") == 300.0 / 1000.0
+    assert parse_pace("510 sec/km") == 510.0 / 1000.0
+    assert parse_pace("255 sec/m") == 255.0 / 1.0
+    assert parse_pace("600 sec/m") == 600.0 / 1.0
+
+
+    # Test with whitespace
+    assert parse_pace(" 6:00/km ") == 360.0 / 1000.0
+    assert parse_pace(" 7:30/m ") == 450.0 / 1.0
+    
+    # Test case insensitive
+    assert parse_pace("5:00/KM") == 300.0 / 1000.0
+    assert parse_pace("4:15/M") == 255.0 / 1.0
+
+
+def test_parse_pace_invalid_inputs() -> None:
+    """Test parse_pace with invalid inputs."""
+
+    # Test invalid formats
+    with pytest.raises(ValueError, match="can't be parse"):
+        parse_pace("5:00perkm")
+
+    with pytest.raises(ValueError, match="can't be parse"):
+        parse_pace("5:00")
+
+    with pytest.raises(ValueError, match="can't be parse"):
+        parse_pace("five minutes per km")
+
+    # Test invalid numeric values
+    with pytest.raises(ValueError, match="can't be parse"):
+        parse_pace("abckm")
+
+    with pytest.raises(ValueError, match="can't be parse"):
+        parse_pace("5.5.5/km")
+    

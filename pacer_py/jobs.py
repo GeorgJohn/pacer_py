@@ -2,7 +2,7 @@ import abc
 from typing import Any
 
 import pacer_py.user_interface as ui
-import pacer_py.utils as utils
+import pacer_py.math as math
 
 
 class Job(abc.ABC):
@@ -32,7 +32,6 @@ class CalculatePace(Job):
         except ValueError as e:
             print(f"Error: {e}")
             return {}
-
         return user_readings
 
     def execute(self, user_input: dict[str, Any]) -> dict[str, Any]:
@@ -48,7 +47,7 @@ class CalculatePace(Job):
         if pace_reading is None or not isinstance(pace_reading, (float)):
             raise ValueError("Missing pace in result.")
         
-        pace_split = utils.float_to_duration(pace_reading, 'min')
+        pace_split = math.float_to_duration(pace_reading, 'min')
         print(f"Pace: {pace_split[1]:02d}:{pace_split[2]:02d} min/km")
 
 class CalculateDuration(Job):
@@ -56,28 +55,66 @@ class CalculateDuration(Job):
         return "Start Duration Calculator"
     
     def user_request(self) -> dict[str, Any]:
-        return dict()
+        user_readings: dict[str, int | float] = {}
+        try:
+            user_readings['pace'] = ui.ask_user_for_pace()
+            user_readings['distance'] = ui.ask_user_for_distance()
+        except ValueError as e:
+            print(f"Error: {e}")
+            return {}
+        return user_readings
 
     def execute(self, user_input: dict[str, Any]) -> dict[str, Any]:
-        print(f"Start calculating duration")
-        return dict()
+        pace_sec_per_m = user_input.get('pace')
+        distance_m = user_input.get('distance')
+        if pace_sec_per_m is None or distance_m is None:
+            raise ValueError("Missing pace or distance in user input.")
+        duration_sec = pace_sec_per_m * distance_m
+        return {'duration': duration_sec}
 
     def user_response(self, result: dict[str, Any]) -> None:
-        pass
+        duration_reading = result.get('duration')
+        if duration_reading is None or not isinstance(duration_reading, (int, float)):
+            raise ValueError("Missing duration in result.")
+        
+        if duration_reading < 180:
+            print(f"Duration: {duration_reading:.2f} sec")
+        else:
+            duration_split = math.float_to_duration(duration_reading, 'sec')
+            print(f"Duration: {duration_split[0]:02d}:{duration_split[1]:02d}:{duration_split[2]:02d} hh:mm:ss")
 
 class CalculateDistance(Job):
     def __str__(self) -> str:
         return "Start Distance Calculator"
     
     def user_request(self) -> dict[str, Any]:
-        return dict()
+        user_readings: dict[str, int | float] = {}
+        try:
+            user_readings['pace'] = ui.ask_user_for_pace()
+            user_readings['duration'] = ui.ask_user_for_duration()
+        except ValueError as e:
+            print(f"Error: {e}")
+            return {}
+        return user_readings
 
     def execute(self, user_input: dict[str, Any]) -> dict[str, Any]:
-        print(f"Start calculating distance")
-        return dict()
+        pace_sec_per_m = user_input.get('pace')
+        duration_sec = user_input.get('duration')
+        if pace_sec_per_m is None or duration_sec is None:
+            raise ValueError("Missing pace or duration in user input.")
+        distance_m = duration_sec / pace_sec_per_m
+        return {'distance_m': distance_m}
 
     def user_response(self, result: dict[str, Any]) -> None:
-        pass
+        distance_reading = result.get('distance_m')
+        if distance_reading is None or not isinstance(distance_reading, (int, float)):
+            raise ValueError("Missing distance in result.")
+        
+        if distance_reading >= 1000.0:
+            distance_km = distance_reading / 1000.0
+            print(f"Distance: {distance_km:.2f} km")
+        else:
+            print(f"Distance: {distance_reading:.2f} m")
 
 
 class ExitApplication(Job):

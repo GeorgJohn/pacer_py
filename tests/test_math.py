@@ -1,5 +1,5 @@
 import pytest
-from pacer_py.utils import float_to_duration
+from pacer_py.math import float_to_duration
 
 
 def test_float_to_duration() -> None:

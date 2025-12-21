@@ -123,3 +123,54 @@ def parse_distance(distance_str: str) -> float:
     if distance_in_km:
         return distance_value * 1000.0
     return distance_value
+
+
+def parse_pace(pace_str: str) -> float:
+    """
+        Parse a pace string into seconds per meter.
+        Valid formats are: 
+            seconds/km', seconds/m,
+            'HH:MM:SS/km', 'HH:MM:SS/m',
+            'MM min/km', 'MMmin/m',
+            'MM:SS min/km', 'MM:SS min/m',
+            'SS sec/km', 'SS sec/m'
+    
+    Args:
+        pace_str (str): Pace string in different formats.
+
+    Returns:
+        float: Pace in seconds per meter.
+
+    Raises:
+        ValueError: If the input format is invalid.
+    """
+    pace_str = pace_str.strip().lower()
+    if pace_str.endswith("/km"):
+        pace_time_str = pace_str[:-3].strip()
+        d_factor = 1000.0
+    elif pace_str.endswith("/m"):
+        pace_time_str = pace_str[:-2].strip()
+        d_factor = 1.0
+    else:
+        raise ValueError(f"Given pace '{pace_str}' can't be parsed to a pace! Please use format: 'MM:SS/km' or 'MM:SS/m'.")
+
+    if pace_time_str.endswith("min"):
+        pace_number_str = pace_time_str[:-3].strip()
+        pace_number_split = pace_number_str.split(':')
+        if len(pace_number_split) >= 2:
+            t_factor = 1.0
+        else:
+            t_factor = 60.0
+    elif pace_time_str.endswith("sec"):
+        pace_number_str = pace_time_str[:-3].strip()
+        t_factor = 1.0
+    else:
+        pace_number_str = pace_time_str
+        t_factor = 1.0
+
+    try:
+        total_seconds = t_factor * parse_duration(pace_number_str)
+        return total_seconds / d_factor
+    except ValueError as e:
+        raise ValueError(e)
+

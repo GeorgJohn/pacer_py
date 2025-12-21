@@ -50,3 +50,13 @@ def ask_user_for_duration() -> int:
             print(f"{e}, Please try again.")
     raise ValueError("Failed to parse duration after multiple attempts.")
 
+
+def ask_user_for_pace() -> float:
+    """Ask the user for a pace input."""
+    for _ in range(3):  # Allow up to 3 attempts
+        pace_str = input("Enter pace (e.g., '5:00/km', '8:00/m'): ").strip()
+        try:
+            return parser.parse_pace(pace_str)
+        except ValueError as e:
+            print(f"{e}, Please try again.")
+    raise ValueError("Failed to parse pace after multiple attempts.")
