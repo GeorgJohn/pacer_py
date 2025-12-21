@@ -2,7 +2,7 @@ import abc
 from typing import Any
 
 import pacer_py.user_interface as ui
-import pacer_py.math as math
+import pacer_py.math as ppm
 
 
 class Job(abc.ABC):
@@ -39,7 +39,7 @@ class CalculatePace(Job):
         duration_sec = user_input.get('duration')
         if distance_m is None or duration_sec is None:
             raise ValueError("Missing distance or duration in user input.")
-        pace_min_per_km = (duration_sec / 60.0) / (distance_m / 1000.0)
+        pace_min_per_km = ppm.pace_from_duration_and_distance(duration_sec, distance_m, 'min/km')
         return {'pace_min_per_km': pace_min_per_km}
 
     def user_response(self, result: dict[str, Any]) -> None:
@@ -47,7 +47,7 @@ class CalculatePace(Job):
         if pace_reading is None or not isinstance(pace_reading, (float)):
             raise ValueError("Missing pace in result.")
         
-        pace_split = math.float_to_duration(pace_reading, 'min')
+        pace_split = ppm.duration_to_hh_mm_ss(pace_reading, 'min')
         print(f"Pace: {pace_split[1]:02d}:{pace_split[2]:02d} min/km")
 
 class CalculateDuration(Job):
@@ -69,7 +69,7 @@ class CalculateDuration(Job):
         distance_m = user_input.get('distance')
         if pace_sec_per_m is None or distance_m is None:
             raise ValueError("Missing pace or distance in user input.")
-        duration_sec = pace_sec_per_m * distance_m
+        duration_sec = ppm.duration_from_pace_and_distance(pace_sec_per_m, distance_m)
         return {'duration': duration_sec}
 
     def user_response(self, result: dict[str, Any]) -> None:
@@ -80,7 +80,7 @@ class CalculateDuration(Job):
         if duration_reading < 180:
             print(f"Duration: {duration_reading:.2f} sec")
         else:
-            duration_split = math.float_to_duration(duration_reading, 'sec')
+            duration_split = ppm.duration_to_hh_mm_ss(duration_reading, 'sec')
             print(f"Duration: {duration_split[0]:02d}:{duration_split[1]:02d}:{duration_split[2]:02d} hh:mm:ss")
 
 class CalculateDistance(Job):
@@ -102,7 +102,7 @@ class CalculateDistance(Job):
         duration_sec = user_input.get('duration')
         if pace_sec_per_m is None or duration_sec is None:
             raise ValueError("Missing pace or duration in user input.")
-        distance_m = duration_sec / pace_sec_per_m
+        distance_m = ppm.distance_from_pace_and_duration(pace_sec_per_m, duration_sec, 'm')
         return {'distance_m': distance_m}
 
     def user_response(self, result: dict[str, Any]) -> None:
