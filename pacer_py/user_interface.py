@@ -20,7 +20,7 @@ def display_available_options(opt: dict[int, str]) -> None:
 def ask_user_for_option(opt: dict[int, str]) -> int:
     """Ask the user to choose from different jobs."""
     text = 60 * "\n"
-    text += "What do you want to do:\n"
+    text += "What would you like to do:\n"
 
     for key, value in opt.items():
         text += f"{key}: {value}\n"
