@@ -1,3 +1,6 @@
+from rich import print
+from rich.prompt import Prompt
+
 import pacer_py.user_input_parser as parser
 
 def clear_console() -> None:
@@ -16,17 +19,20 @@ def display_available_options(opt: dict[int, str]) -> None:
 
 def ask_user_for_option(opt: dict[int, str]) -> int:
     """Ask the user to choose from different jobs."""
-    for _ in range(3):  # Allow up to 3 attempts
-        clear_console()
-        display_available_options(opt)
-        user_input_str = input("Please choose one of the listed options: ").strip()
-        try:
-            return parser.parse_option(user_input_str, opt)
-        except ValueError as e:
-            print(f"{e} Please try again.")
+    text = 60 * "\n"
+    text += "What do you want to do:\n"
 
-        input("Please try again. Press Enter to continue...")
-    return -1  # Indicate failure after 3 attempts
+    for key, value in opt.items():
+        text += f"{key}: {value}\n"
+
+    option = Prompt.ask(text, 
+                        choices=[str(k) for k in opt.keys()], 
+                        show_default=False, 
+                        show_choices=False)
+    if option in [str(k) for k in opt.keys()]:
+        return int(option)
+    else:
+        return -1
 
 
 def ask_user_for_distance() -> float:

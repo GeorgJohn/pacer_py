@@ -1,6 +1,8 @@
 import abc
 from typing import Any
 
+from rich import print
+
 import pacer_py.user_interface as ui
 import pacer_py.math as ppm
 
